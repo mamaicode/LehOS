@@ -1,7 +1,9 @@
 [BITS 32] ;so that all code after this is seen as 32bits
 global _start ;exports the symbol otherwise it wont be publically known
+
 CODE_SEG equ 0x08 ;kernel code segment
 DATA_SEG equ 0x10 ;data segment
+
 _start:
     mov ax, DATA_SEG  ;setting up data registers
     mov ds, ax

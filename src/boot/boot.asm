@@ -69,11 +69,14 @@ load32:
     mov ecx, 100 ;total number of sectors we want to load
     mov edi, 0x0100000 ;edi contanins address we want to load sectors into
     call ata_lba_read ;label that talks with drive and loads sectors into memory
+    jmp CODE_SEG:0x0100000
+
 
 ata_lba_read: ;writing the driver to get the kernel loaded
     mov ebx, eax, ;backup the LBA
     ;send the highest 8 bits of the lba to hard disk controller
     shr eax, 24 ;eax will be shifted 24 bits so it will contain 8 highest bits now 32-24
+    or eax, 0xE0 ;selects the master drive (since we have slave and master)
     mov dx, 0x1F6 ;port it expects to write 8 bits into
     out dx, al 
     ;finished sending the highest 8 bits of the LBA
@@ -126,9 +129,11 @@ out dx, al
 ;need to read 256 words at a time
     mov ecx, 256
     mov dx, 0x1F0
-    rep insw ;reading the word from the port 0x1F0 and storing it into 0x0100000
-     
-
+    rep insw ;reading the 256 word from the port 0x1F0 and storing it into 0x0100000, 256 words i.e 256 bits
+    pop ecx ;ecx is the total number of sectors we want to read so we pop it to restore that sector number
+    loop .next_sector ;restore ecx to sector count, so this will go to next sector and decrement ecx so when it loops around it is one sector less to read 
+;end end of reading sectors into memory
+    ret ;return from the subroutine
 
 times 510-($ - $$) db 0 ; fill at least 510 bytes of data
 dw 0xAA55 ;since intel machine is little endian 
